@@ -1,0 +1,117 @@
+library(tidyverse)
+
+```{r}
+nyc311_url <- paste0(
+  "https://data.cityofnewyork.us/resource/erm2-nwe9.csv?",
+  "$limit=15000&",
+  "$select=created_date,closed_date,complaint_type,descriptor,",
+  "location_type,incident_zip,borough,status,resolution_description,",
+  "agency,agency_name,police_precinct"
+)
+
+
+nyc311_url
+
+complaints_raw <- read_csv(
+  file = nyc311_url,
+  na = c("", "NA", "N/A")
+)
+
+complaints_raw
+
+glimpse(complaints_raw)
+spec(complaints_raw)
+
+parse_number(c("$1,250", "$950", "unknown"))
+example_text <- c(
+  "Loud Music/Party",
+  "Noise - Residential",
+  "Blocked driveway",
+  NA
+)
+
+example_text
+
+str_length(example_text)                         # character count
+str_to_lower(example_text)                      # lowercase
+str_to_upper(example_text)                      # uppercase
+str_detect(example_text, regex("noise", ignore_case = TRUE))
+str_replace_all(
+  example_text,
+  regex("noise", ignore_case = TRUE),
+  "SOUND"
+)
+str_extract(example_text, regex("noise|blocked", ignore_case = TRUE))
+str_count(example_text, regex("noise", ignore_case = TRUE))
+str_split("noise, parking, sanitation", pattern = ", ")
+
+complaints <- complaints_raw |>
+  mutate(
+    complaint_type_text = replace_na(complaint_type, ""),
+    descriptor_text     = replace_na(descriptor, ""),
+    location_type_text  = replace_na(location_type, ""),
+    search_text = str_c(
+      complaint_type_text,
+      descriptor_text,
+      location_type_text,
+      sep = " | "
+    )
+  )
+
+complaints |>
+  select(search_text) |>
+  slice_head(n = 6)
+
+complaints <- complaints |>
+  mutate(
+    is_noise_related = str_detect(
+      search_text,
+      regex("noise|loud|music|party|parties", ignore_case = TRUE)
+    )
+  )
+
+complaints |> count(is_noise_related)
+
+complaints |>
+  filter(is_noise_related) |>
+  select(complaint_type, descriptor, location_type, is_noise_related) |>
+  slice_head(n = 10)
+
+complaints |>
+  filter(!is_noise_related) |>
+  select(complaint_type, descriptor, location_type, is_noise_related) |>
+  slice_head(n = 10)
+
+complaints <- complaints |>
+  mutate(
+    topic = case_when(
+      str_detect(search_text, regex("noise|loud|music|party|parties", ignore_case = TRUE)) ~ "noise",
+      str_detect(search_text, regex("parking|vehicle|blocked driveway", ignore_case = TRUE)) ~ "parking",
+      str_detect(search_text, regex("heat|hot water|water leak|plumbing", ignore_case = TRUE)) ~ "housing or water",
+      .default = "other"
+    )
+  )
+
+complaints |> count(topic)
+
+complaints <- complaints |>
+  mutate(
+    descriptor_length  = str_length(descriptor_text),
+    noise_word_count   = str_count(search_text, regex("noise", ignore_case = TRUE))
+  )
+
+complaints |>
+  summarise(
+    min    = min(descriptor_length),
+    median = median(descriptor_length),
+    mean   = round(mean(descriptor_length), 1),
+    max    = max(descriptor_length)
+  )
+
+complaints |> count(noise_word_count)
+
+write_csv(complaints, "nyc311_text_classified.csv")
+file.exists("nyc311_text_classified.csv")
+
+
+```

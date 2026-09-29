@@ -1,0 +1,319 @@
+---
+title: "Reading, Checking, and Searching Text Data in R"
+subtitle: "A readr and stringr lesson using NYC 311 complaints"
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+## Lesson overview
+
+This beginner-friendly lesson uses four tidyverse packages:
+
+- **`readr`** imports, inspects, validates, and exports data.
+- **`dplyr`** transforms, filters, and summarises data frames.
+- **`tidyr`** reshapes data and handles missing values.
+- **`stringr`** searches, measures, and transforms text.
+
+We will use a public sample from NYC Open Data's 311 Service Requests. It has
+text fields such as complaint type, descriptor, location type, and resolution
+description, as well as missing values. 
+
+### Learning objectives
+
+Students will be able to:
+
+1. Import a CSV from a URL with `readr::read_csv()`.
+2. Inspect dimensions, names, types, and parsing problems.
+3. Identify missing values and explain why they matter.
+4. Use common `stringr` functions.
+5. Create a new field with case-insensitive string matching.
+6. Check whether a text-matching rule makes sense.
+7. Export revised data with `readr::write_csv()`.
+
+## 1. Packages and public data
+
+```{r}
+# Install once, if necessary:
+# install.packages("tidyverse")
+
+library(tidyverse)
+```
+
+This URL requests 15,000 rows and twelve useful fields. Because the public dataset
+is updated over time, the exact rows may change when the lesson is rerun.
+
+```{r}
+nyc311_url <- paste0(
+  "https://data.cityofnewyork.us/resource/erm2-nwe9.csv?",
+  "$limit=15000&",
+  "$select=created_date,closed_date,complaint_type,descriptor,",
+  "location_type,incident_zip,borough,status,resolution_description,",
+  "agency,agency_name,police_precinct"
+)
+
+
+nyc311_url
+```
+
+## 2. Import and check the CSV
+
+```{r}
+complaints_raw <- read_csv(
+  file = nyc311_url,
+  na = c("", "NA", "N/A")
+)
+
+complaints_raw
+```
+
+**The first row is used as the header by default**, and the result is a tibble.
+
+```{r}
+glimpse(complaints_raw)
+```
+
+
+Inspect types and parsing problems:
+
+- `spec(complaints_raw)` shows the full column specification that `readr` used when importing — the name and **guessed** type of every column.
+
+
+```{r}
+spec(complaints_raw)
+```
+
+
+## 4. Common `readr` functions
+
+| Function | Purpose |
+|---|---|
+| `read_csv()` | Read comma-separated files |
+| `read_tsv()` | Read tab-separated files |
+| `read_delim()` | Read a file with a chosen delimiter |
+| `write_csv()` | Write a CSV file |
+| `problems()` | Show parsing problems |
+| `spec()` | Show column specifications |
+| `parse_number()` | Extract numbers from text |
+| `parse_date()` | Convert text into dates |
+
+```{r}
+parse_number(c("$1,250", "$950", "unknown"))
+```
+
+## Stringr lesson: searching and transforming text
+
+## 5. Common `stringr` functions
+
+```{r}
+example_text <- c(
+  "Loud Music/Party",
+  "Noise - Residential",
+  "Blocked driveway",
+  NA
+)
+
+example_text
+```
+
+```{r}
+str_length(example_text)                         # character count
+str_to_lower(example_text)                      # lowercase
+str_to_upper(example_text)                      # uppercase
+str_detect(example_text, regex("noise", ignore_case = TRUE))
+str_replace_all(
+  example_text,
+  regex("noise", ignore_case = TRUE),
+  "SOUND"
+)
+str_extract(example_text, regex("noise|blocked", ignore_case = TRUE))
+str_count(example_text, regex("noise", ignore_case = TRUE))
+str_split("noise, parking, sanitation", pattern = ", ")
+```
+
+`str_detect()` returns `TRUE`, `FALSE`, or sometimes
+`NA`. `regex()` allows case-insensitive matching. The `|`
+symbol means “OR.”
+
+## 6. Create a searchable text field
+
+Combine several text columns, replacing missing values with empty strings first:
+
+```{r}
+complaints <- complaints_raw |>
+  mutate(
+    complaint_type_text = replace_na(complaint_type, ""),
+    descriptor_text     = replace_na(descriptor, ""),
+    location_type_text  = replace_na(location_type, ""),
+    search_text = str_c(
+      complaint_type_text,
+      descriptor_text,
+      location_type_text,
+      sep = " | "
+    )
+  )
+
+complaints |>
+  select(search_text) |>
+  slice_head(n = 6)
+```
+
+The `search_text` column is derived data created for a specific question.
+
+## 7. Create a field using string matching
+
+Identify complaints involving noise, loud sounds, music, or parties:
+
+```{r}
+complaints <- complaints |>
+  mutate(
+    is_noise_related = str_detect(
+      search_text,
+      regex("noise|loud|music|party|parties", ignore_case = TRUE)
+    )
+  )
+
+complaints |> count(is_noise_related)
+```
+
+Inspect both matching and nonmatching records:
+
+```{r}
+complaints |>
+  filter(is_noise_related) |>
+  select(complaint_type, descriptor, location_type, is_noise_related) |>
+  slice_head(n = 10)
+
+complaints |>
+  filter(!is_noise_related) |>
+  select(complaint_type, descriptor, location_type, is_noise_related) |>
+  slice_head(n = 10)
+```
+
+A matching rule can be syntactically correct but classify records incorrectly.
+Always inspect examples.
+
+## 8. Create broader categories
+
+Conditions are checked from top to bottom, so order matters.
+
+```{r}
+complaints <- complaints |>
+  mutate(
+    topic = case_when(
+      str_detect(search_text, regex("noise|loud|music|party|parties", ignore_case = TRUE)) ~ "noise",
+      str_detect(search_text, regex("parking|vehicle|blocked driveway", ignore_case = TRUE)) ~ "parking",
+      str_detect(search_text, regex("heat|hot water|water leak|plumbing", ignore_case = TRUE)) ~ "housing or water",
+      .default = "other"
+    )
+  )
+
+complaints |> count(topic)
+```
+
+These are not official NYC classifications. They are rule-based fields designed
+for a particular analysis.
+
+## 9. Text summaries and export
+
+```{r}
+complaints <- complaints |>
+  mutate(
+    descriptor_length  = str_length(descriptor_text),
+    noise_word_count   = str_count(search_text, regex("noise", ignore_case = TRUE))
+  )
+
+complaints |>
+  summarise(
+    min    = min(descriptor_length),
+    median = median(descriptor_length),
+    mean   = round(mean(descriptor_length), 1),
+    max    = max(descriptor_length)
+  )
+
+complaints |> count(noise_word_count)
+```
+
+```{r}
+write_csv(complaints, "nyc311_text_classified.csv")
+file.exists("nyc311_text_classified.csv")
+```
+
+Keep the original URL, download date, and matching rules with the project.
+
+## Student practice activities
+
+### Activity 1: Import and validate
+
+1. Import the CSV into `complaints`.
+2. Display rows, columns, names, and types.
+3. Use `problems()` to check parsing.
+4. Count missing values in every column.
+
+### Activity 2: Explore text
+
+Using `descriptor`:
+
+1. Calculate the length of each descriptor.
+2. Find the ten longest descriptors.
+3. Count descriptors containing `"noise"`.
+4. Repeat without regard to capitalization.
+5. Explain how missing descriptors affect `str_detect()`.
+
+### Activity 3: Create a new field
+
+Create `is_parking_related` that is `TRUE` when the combined
+text contains `"parking"`, `"vehicle"`, `"blocked driveway"`,
+or `"illegal parking"`. Inspect matching and nonmatching rows and
+identify one possible false positive or false negative.
+
+### Activity 4: Improve the rule
+
+Create `service_area` with these categories:
+
+- `"noise"` for noise, loud, music, or party;
+- `"parking"` for parking, vehicle, or driveway;
+- `"housing"` for heat, water, plumbing, or apartment;
+- `"other"` otherwise.
+
+Explain why the order of the matching rules matters.
+
+## Exit ticket
+
+1. What is the difference between a missing value and a parsing problem?
+2. Why convert text to lowercase before using `str_detect()`?
+3. What does `|` mean inside `"noise|music|party"`?
+4. Why inspect examples after creating a text-based classification?
+5. What should be preserved so another person can reproduce the new field?
+
+## Key takeaways
+
+```{r}
+#| eval: false
+library(tidyverse)
+
+data <- read_csv("URL_OR_FILE_PATH", show_col_types = FALSE)
+
+glimpse(data)
+spec(data)
+problems(data)
+
+data |> summarise(across(everything(), \(x) sum(is.na(x)))) |>
+  pivot_longer(everything(), names_to = "column", values_to = "n_missing")
+
+data <- data |>
+  mutate(
+    text_clean = replace_na(text_column, ""),
+    new_field  = str_detect(text_clean, regex("pattern1|pattern2", ignore_case = TRUE))
+  )
+```
+
+Importing data is not the same as validating data. Text matching is not the same
+as discovering an objective truth: it is a rule that we create, test, explain,
+and revise.
+
