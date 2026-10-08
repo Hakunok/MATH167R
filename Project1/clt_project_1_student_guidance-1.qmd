@@ -1,0 +1,160 @@
+---
+title: "CLT Project 1: What I Am Looking For"
+subtitle: "Student Guidance for a Monte Carlo Investigation"
+author: "Greg Labmeier"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
+    theme: cosmo
+    smooth-scroll: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Purpose of the project
+
+This project is not simply about producing graphs or finding one sample size where every distribution becomes normal. Your goal is to conduct a careful Monte Carlo investigation and use evidence to explain when the Central Limit Theorem works well, when it works slowly, and when its assumptions break down.
+
+You should approach this project as a statistical investigation rather than as a collection of R exercises.
+
+## Populations to Investigate
+
+**As we discussed in class on 9/21, I am reducing the number of distributions to cover. Remember, I designed this project as a advanced project that you can promote on your resume and discuss on an interview. If you don't get to these distributions...do them later. Always improve your resume ** 
+
+The new list of distributions to investigate is as follows: 
+
+| Population | Suggested R approach | Important characteristic | Parameters/assumptions |
+|------------------|------------------|------------------|------------------|
+| Standard Normal | `rnorm()` | Normal population | $\mu=0$ , $\sigma=1$ |
+| ~~Continuous Uniform~~ | ~~`runif()`~~ | ~~Bounded, symmetric, non-normal~~ | $a=0$, $b=1$ |
+| Six-Sided Die | `sample()` | Discrete uniform | Values 1–6, equally likely |
+| Exponential | `rexp()` | Strong right skew | $\lambda=1$ (mean = 1) |
+| ~~Poisson~~ | ~~`rpois()`~~ | ~~Discrete and potentially skewed~~ | $\lambda=1$ |
+| Binomial Small | `rbinom()` | Highly discrete/skewed | $n=5$, $p=0.10$ |
+| ~~Binomial Large~~ | ~~`rbinom()`~~ | ~~More symmetric~~ | $n=20$, $p=0.50$ |
+| Cauchy | `rcauchy()` | Extremely heavy tails | Location $=0$, scale $=1$ |
+
+**These extra distributions now become extra credit.** 
+
+| Population | Suggested R approach | Important characteristic | Parameters/assumptions |
+|------------------|------------------|------------------|------------------|
+| Dependent Machine Failure | See dependent_failure_process | Next failure depends on previous | $\lambda=1$, AR(1)-style dependence |
+| Non-identical Bernoulli | See non_identical_basketball_shots | $p$ changes across observations | $p$ ranges from 0.5 to 0.9 |
+| Life/Death Population | See custom_age_at_death_distribution_monte_carlo | Irregular real-world-inspired distribution | Two-component mixture |
+
+Part of the assignment is understanding **why these populations behave differently**.
+
+Do not assume every population must eventually produce the same result.
+
+## Questions your project should answer
+
+For each distribution or process, consider the following questions:
+
+1. What does the original population distribution look like?
+2. What are its theoretical mean and standard deviation?
+3. How quickly does the sampling distribution become approximately normal?
+4. How does the simulated mean compare with the theoretical mean?
+5. How does the simulated standard error compare with
+
+   $$
+   \operatorname{SE}(\bar X)=\frac{\sigma}{\sqrt{n}}?
+   $$
+
+7. What evidence supports your conclusion that the distribution is—or is not—approximately normal?
+8. What limitations or surprises did you observe?
+
+## What your analysis might include
+
+For each assigned distribution or process, include:
+
+- Repeated samples and their sample means.
+- Iterating through many different sample sizes
+- Some histograms.
+- Use of Q–Q plots using `qqnorm()` and `qqline()`.
+- Appropriate numerical summaries, such as:
+  - simulated mean,
+  - simulated standard deviation,
+  - skewness,
+  - kurtosis,
+  - theoretical standard error.
+- A comparison between theoretical and simulated results.
+
+## Important hints
+
+### Distinguish \(n\) from the number of simulations
+
+These are different quantities:
+
+- \(n\) is the number of observations in one sample.
+- The number of simulations is how many samples you repeatedly generate.
+
+For example, you might generate 10,000 samples, each containing \(n=30\) observations. The 10,000 simulations help you study the sampling distribution of the mean; they do not mean that your sample size is 10,000.
+
+### Do not rely on one piece of evidence. Examine a few of your favorites, like:
+
+- statistical tests
+- histograms,
+- Q–Q plots,
+- skewness,
+- kurtosis,
+- symmetry,
+- outliers, and
+- how closely the simulated standard deviation agrees with theory.
+
+### Define “approximately normal” or "good enough" for you
+
+There is no single universal cutoff for when a distribution becomes “normal enough.” You must explain your criterion.
+
+For example, you might consider:
+
+- whether the histogram is reasonably bell-shaped,
+- whether the Q–Q plot is approximately linear,
+- whether skewness is relatively small,
+- whether extreme outliers are still influential, and
+- whether the empirical standard error agrees with the theoretical prediction.
+
+Use the same general reasoning across cases, but recognize that different distributions may require different interpretations.
+
+
+
+### Pay attention to the CLT assumptions
+
+The ordinary CLT usually assumes observations are:
+
+- independent,
+- identically distributed, and
+- drawn from a distribution with finite variance.
+
+Your project includes cases where one or more of these assumptions may not hold. Do not automatically apply the usual formula without discussing whether it is appropriate.
+
+## Reproducibility expectations
+
+Someone else should be able to download your repository and reproduce your results.
+
+Your project should:
+
+- use a reproducible random seed;
+- use the last four digits of your student ID where required;
+- use functions or reusable code when possible;
+- render successfully as a Quarto document;
+- include clear code and explanations; and
+- be organized in your GitHub repository.
+
+Include a brief record of the AI prompts, follow-up prompts, and how you checked or corrected the resulting code. Store your AI prompts in a different file.
+
+## Final Table and Executive Summary
+
+I should be able to read your final summary document in GitHub that will clearly and easily explain what you did and your conclusions about CLT. Is the number 30?
+
+Include a table with each distribution you tested along with columns of what you look at
+
+## Final reminder
+
+The most important part of the project is your explanation. I am looking for evidence-based reasoning about the CLT—not just code that runs or graphs that look attractive.
+
+A strong report makes a prediction, performs a reproducible simulation, compares the results with theory, and explains what the evidence means.
+
