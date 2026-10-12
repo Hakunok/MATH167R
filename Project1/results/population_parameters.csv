@@ -1,0 +1,6 @@
+"distribution","theoretical_mean","theoretical_sd","population_skewness","population_excess_kurtosis","prediction"
+"Standard Normal",0,1,0,0,"Sample means are exactly normal at every n."
+"Six-Sided Die",3.5,1.70782512765993,0,-1.26857142857143,"Symmetric but discrete; the normal approximation improves with n."
+"Exponential",1,1,2,6,"Right skew decreases slowly; mean skewness is 2/sqrt(n)."
+"Binomial Small",0.5,0.670820393249937,1.19256958799989,1.02222222222222,"Initially skewed and discrete; both effects decrease with n."
+"Cauchy",NA,NA,NA,NA,"Sample means remain standard Cauchy; the ordinary CLT fails."
