@@ -1,0 +1,24 @@
+license_no,legal_business_name,street_number,street_name,street_type,city_name,state_code,zip_code,license_type,annual_fee,license_status
+LIC-501,"THE COPPER SPOON",125,MAIN,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1250,Active
+LIC-502,"La Casita Mexican Grill ",400,HIGUERA,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1500,Active
+LIC-503,"Bluebird Coffee Company",88,BROAD,ST,SAN LUIS OBISPO,CA,93401,Cafe,850,Active
+LIC-504,"SUNNYSIDE BAKERY",17,GARDEN,AVE,SAN LUIS OBISPO,CA,93405,Bakery,975,Active
+LIC-505,"The Corner Deli",210,FOOTHILL,BLVD,SAN LUIS OBISPO,CA,93405,Deli,1100,Active
+LIC-506,"Pacific Catch",610,HARBOR,DR,MORRO BAY,CA,93442,Restaurant,1350,Active
+LIC-507,"Pine Tree Barbecue",55,LOS OSOS VALLEY,RD,SAN LUIS OBISPO,CA,93405,Restaurant,1400,Active
+LIC-508,"Noodle House",725,MONTEREY,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1200,Active
+LIC-509,"Harvest Table",301,BROAD,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1600,Active
+LIC-510,"El Camino Tacos",90,MADONNA,RD,SAN LUIS OBISPO,CA,93405,Food Truck,700,Active
+LIC-511,"Pacific Catch",701,FRONT,ST,MORRO BAY,CA,93442,Restaurant,1450,Active
+LIC-512,"Campus Cravings",1,UNIVERSITY,WAY,SAN LUIS OBISPO,CA,93410,Cafeteria,900,Active
+LIC-513,"The Green Fork",44,GARDEN,AVE,SAN LUIS OBISPO,CA,93405,Restaurant,1550,Active
+LIC-514,"Old Mission Pizza",777,MONTEREY,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1300,Expired
+LIC-515,"Harbor Bean Cafe",18,OCEAN,AVE,MORRO BAY,CA,93442,Cafe,800,Expired
+LIC-516,"Riverside Grill",250,HIGUERA,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1250,Expired
+LIC-517,"Cypress Coastal Kitchen",820,COASTAL,BLVD,MORRO BAY,CA,93442,Restaurant,1450,Active
+LIC-518,"Mission Street Noodles",455,MISSION,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1150,Expired
+LIC-519,"Oak & Olive Bistro",1330,OSOS,WAY,SAN LUIS OBISPO,CA,93405,Restaurant,1350,Active
+LIC-520,"Golden Grain Cafe",18,OCEAN,AVE,MORRO BAY,CA,93442,Cafe,875,Active
+LIC-521,"Seaside Burger House",205,FRONT,ST,MORRO BAY,CA,93442,Restaurant,1250,Active
+LIC-516,"Riverside Grill",250,HIGUERA,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1250,Expired
+LIC-522,"Mission Street Noodles",455,MISSION,ST,SAN LUIS OBISPO,CA,93401,Restaurant,1150,Active

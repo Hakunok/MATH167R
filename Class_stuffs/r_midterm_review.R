@@ -1,20 +1,21 @@
 # R Midterm Review
-# Run after placing the CSV files in the working directory.
+# Read the CSV files from their absolute paths below.
 
 
 # Run once if necessary:
 # install.packages("tidyverse")
 
-library(tidyverse)
-set.seed(167)
-reviews <- read_csv("restaurant_reviews.csv")
-licenses <- read_csv("restaurant_licenses.csv")
+library(tidyverse) #import library
+set.seed(167) #set random seed for reproducibility
+reviews <- read_csv("C:/Users/huytr/Personal Projects/MATH167R/MATH167R/Class_stuffs/restaurant_reviews-1.csv") #read the restaurant reviews CSV file
+licenses <- read_csv("C:/Users/huytr/Personal Projects/MATH167R/MATH167R/Class_stuffs/restaurant_licenses-1.csv") #read the restaurant licenses CSV file
 glimpse(reviews)
 head(reviews)
 names(reviews)
 dim(reviews)
 summary(reviews)
 colSums(is.na(reviews))
+#remove duplicate reviews based on review_id
 reviews |>
   count(review_id) |>
   filter(n > 1)
@@ -23,15 +24,17 @@ reviews |>
   count(state, sort = TRUE)
 
 write_csv(reviews, "reviews_clean.csv")
+#take the data frame reviews, filter for rows with rating >= 4, select the restaurant_name and rating columns, and arrange the results in descending order of rating
 reviews |>
   filter(rating >= 4) |>
   select(restaurant_name, rating) |>
   arrange(desc(rating))
+#same thing as above but looks better
 arrange(
   select(filter(reviews, rating >= 4), restaurant_name, rating),
   desc(rating)
 )
-reviews |> select(restaurant_name, city, rating)
+reviews |> select(restaurant_name, city, rating) 
 reviews |> select(restaurant_name, starts_with("review"))
 reviews |> select(-review_text)
 reviews |> filter(rating >= 4)
@@ -57,7 +60,7 @@ sum(reviews_small$rating)
 sum(reviews_small$rating, na.rm = TRUE)
 reviews |> arrange(desc(rating), restaurant_name)
 
-reviews |>
+new_cols <- reviews |>
   mutate(
     rating_percent = rating / 5 * 100,
     excellent = rating == 5
@@ -94,6 +97,7 @@ reviews_clean <- reviews |>
       str_replace_all("\\bROAD\\b", "RD") |>
       str_squish()
   )
+reviews_clean
 str_to_upper("hello")
 str_to_lower("HELLO")
 str_trim("  text  ")

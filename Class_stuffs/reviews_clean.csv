@@ -1,0 +1,32 @@
+review_id,restaurant_name,address_line,city,state,postal_code,review_date,rating,review_text
+R-1001,The Copper Spoon,125 Main St.,San Luis Obispo,ca,93401,2026-01-12,5,Great service and excellent pasta
+R-1002,LA CASITA MEXICAN GRILL,400 Higuera Street,San Luis Obispo,CA,93401,2026-01-18,4,Large portions
+R-1003,Bluebird Coffee Co.,88 Broad St,San Luis Obispo,CA,93401,2026-02-02,5,Best coffee in town
+R-1004,Sunnyside Bakery,17 Garden Ave.,SAN LUIS OBISPO,ca,93405,2026-02-05,4,Fresh bread every morning
+R-1005,The Corner Deli,210 Foothill Blvd,San Luis Obispo,CA,93405,2026-02-11,3,Good sandwiches but slow service
+R-1006,Pacific Catch,610 HARBOR DR.,Morro Bay,CA,93442,2026-02-12,5,Wonderful fish tacos
+R-1007,Pine Tree BBQ,55 Los Osos Valley Rd.,San Luis Obispo,CA,93405,2026-02-15,4,Smoked brisket was delicious
+R-1008,Noodle House,725 Monterey St,San Luis Obispo,CA,93401,2026-02-19,4,Quick and affordable
+R-1009,Harvest Table,301 Broad St.,San Luis Obispo,CA,93401,2026-02-21,5,Farm to table menu
+R-1010,El Camino Tacos,90 Madonna Road,San Luis Obispo,CA,93405,2026-02-23,3,Decent tacos
+R-1011,Morro Bay Fish Co.,701 Front St,Morro Bay,ca,93442,2026-02-26,4,Great view of the harbor
+R-1012,Campus Cravings,1 University Way,San Luis Obispo,CA,93410,2026-03-01,4,Convenient student meals
+R-1013,The Green Fork,44 Garden Avenue,San Luis Obispo,CA,93405,2026-03-02,5,Creative vegetarian options
+R-1014,Old Mission Pizza,777 Monterey Street,San Luis Obispo,CA,93401,2026-03-03,4,Family favorite
+R-1015,Sunset Smoothies,12 Ocean Ave,Morro Bay,CA,93442,2026-03-05,5,Fresh fruit and friendly staff
+R-1016,The Missing Spoon,999 Unknown Road,San Luis Obispo,CA,93401,2026-03-06,2,Could not find this location
+R-1017,The Copper Spoon,125 MAIN STREET,SAN LUIS OBISPO,CA,93401,2026-03-10,4,The dessert was excellent
+R-1018,the copper spoon,125 Main St,San Luis Obispo,ca,93401,2026-03-18,5,A great dinner downtown
+R-1019,La Casita Mexican Grill,400 HIGUERA ST.,San Luis Obispo,CA,93401,2026-03-12,5,Excellent salsa and attentive staff
+R-1020,LA CASITA MEXICAN GRILL,400 Higuera Street,SAN LUIS OBISPO,ca,93401,2026-03-25,4,Very good enchiladas
+R-1021,Bluebird Coffee Co.,88 Broad Street,San Luis Obispo,CA,93401,2026-03-14,4,Good latte and quiet tables
+R-1022,BLUEBIRD COFFEE COMPANY,88 Broad St.,San Luis Obispo,CA,93401,2026-03-28,5,Friendly baristas
+R-1023,Sunnyside Bakery,17 GARDEN AVENUE,San Luis Obispo,CA,93405,2026-03-16,5,The pastries were still warm
+R-1024,sunnyside bakery,17 Garden Ave,SAN LUIS OBISPO,ca,93405,2026-03-30,4,Nice breakfast stop
+R-1025,The Corner Deli,210 FOOTHILL BOULEVARD,San Luis Obispo,CA,93405,2026-03-20,4,Fresh ingredients
+R-1026,Pacific Catch,610 Harbor Drive,MORRO BAY,CA,93442,2026-03-21,5,Beautiful sunset and fresh seafood
+R-1027,Pine Tree Barbecue,55 Los Osos Valley Road,San Luis Obispo,CA,93405,2026-03-22,5,Tender ribs
+R-1028,Noodle House,725 MONTEREY STREET,San Luis Obispo,CA,93401,2026-03-23,3,Tasty broth
+R-1029,Harvest Table,301 Broad Street,San Luis Obispo,CA,93401,2026-03-24,4,Seasonal ingredients
+R-1030,El Camino Tacos,90 MADONNA RD.,SAN LUIS OBISPO,CA,93405,2026-03-26,4,Good value for lunch
+R-1031,Morro Bay Fish Company,701 Front Street,Morro Bay,CA,93442,2026-03-27,5,The fish was perfectly cooked

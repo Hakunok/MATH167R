@@ -1,0 +1,1169 @@
+---
+title: "Introduction to Logistic Regression"
+subtitle: "Predicting Titanic survival with R"
+author: ""
+format: html
+---
+
+# Learning goals
+
+By the end of this lesson, you should be able to:
+
+- explain when logistic regression is appropriate;
+- distinguish logistic regression from ordinary linear regression;
+- interpret logistic regression probabilities and odds;
+- clean data and create useful variables;
+- split data into training and testing groups;
+- fit a logistic regression model in R;
+- convert probabilities into predicted classes;
+- evaluate a model on data it did not use for training; and
+- interpret ROC curves, AUC, and cumulative gains charts.
+
+# 1. What is logistic regression?
+
+Logistic regression is used when the target variable has two possible outcomes. The outcomes are often represented as 0 and 1.
+
+Examples include:
+
+- survived or did not survive;
+- purchased or did not purchase;
+- passed or failed;
+- fraud or not fraud;
+- disease or no disease; and
+- clicked or did not click.
+
+The model estimates the probability that an observation belongs to the outcome coded as 1.
+
+In this lesson, the target is whether a Titanic passenger survived:
+
+- `Survived = 1`: the passenger survived;
+- `Survived = 0`: the passenger did not survive.
+
+The model will estimate:
+
+$$
+P(\text{survived} = 1 \mid \text{passenger characteristics})
+$$
+
+This is a prediction and classification problem. The model describes associations in the data; it does not prove that a passenger characteristic caused survival.
+
+# 2. When should logistic regression be used?
+
+Use logistic regression when:
+
+1. the target has two categories;
+2. you want estimated probabilities;
+3. you want to classify observations using a probability cutoff; or
+
+Logistic regression can be used in many real-world settings:
+
+- A bank predicts whether a loan applicant will default.
+- A hospital predicts whether a patient is at high risk for a condition.
+- A company predicts whether a customer will cancel a subscription.
+- An online business predicts whether a visitor will make a purchase.
+- A security system predicts whether a transaction is fraudulent.
+- A gaming company predicts which features are related to in-app purchases
+
+
+# 3. The mathematics behind logistic regression
+
+` Not on the test`
+
+## Ordinary linear regression
+
+In ordinary linear regression, we model the mean of a numerical response:
+
+$$
+Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots + \varepsilon
+$$
+
+The predicted values can be any real number. That is appropriate for outcomes such as price, height, or temperature, but not for a probability.
+
+## Logistic regression
+
+Let (p) be the probability that the outcome is 1:
+
+$$
+p = P(Y = 1 \mid X)
+$$
+
+The odds of the outcome are:
+
+$$
+\text{odds} = \frac{p}{1-p}
+$$
+
+Logistic regression models the log odds, also called the logit:
+
+$$
+\log\left(\frac{p}{1-p}\right)
+  = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots
+$$
+
+The log odds can be any real number, so a linear expression can model them. Solving for (p) gives the logistic function:
+
+$$
+p = \frac{e^{\eta}}{1 + e^{\eta}}
+$$
+
+where:
+
+$$
+\eta = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots
+$$
+
+The logistic function always produces a value between 0 and 1.
+
+The following graph shows the classic S-shaped logistic curve. The horizontal
+axis is the linear predictor (the log-odds), which can range from negative
+infinity to positive infinity. The vertical axis is the probability `p`. The
+curve approaches 0 as the linear predictor becomes very negative and
+approaches 1 as it becomes very positive.
+
+```{r}
+eta <- seq(-8, 8, length.out = 400)
+p <- 1 / (1 + exp(-eta))
+
+plot(
+  eta,
+  p,
+  type = "l",
+  lwd = 3,
+  col = "steelblue",
+  ylim = c(0, 1),
+  xlab = expression(eta == log(p / (1 - p))),
+  ylab = "Probability p",
+  main = "The Logistic Function"
+)
+abline(h = c(0, 1), lty = 3, col = "gray60")
+abline(v = 0, lty = 3, col = "gray60")
+```
+
+The graph uses a finite window from -8 to 8 so that it can be displayed. In
+the mathematical definition, `eta` can continue toward negative or positive
+infinity. The probability remains strictly between 0 and 1 for finite values.
+
+## Interpreting coefficients
+
+A coefficient describes a change in log odds. Exponentiating a coefficient gives an **odds ratio**:
+
+```text
+odds ratio = exp(coefficient)
+```
+
+In the model output, the odds ratios will be calculated from the estimated coefficients.
+
+For a numerical predictor, an odds ratio greater than 1 indicates higher odds of the outcome as the predictor increases. An odds ratio less than 1 indicates lower odds.
+
+For a categorical predictor, the odds ratio compares one category with the reference category, holding the other variables constant.
+
+An odds ratio is not the same as a probability difference. The change in probability depends on the starting probability and the values of the other predictors.
+
+## A simple numerical example: admission probability and GPA
+
+Suppose we want to model the probability that a student is admitted to a
+school based only on GPA. Assume that GPA ranges from 2.0 to 4.0 and that we
+want the model to satisfy these three conditions:
+
+| GPA | Probability of admission |
+|---:|---:|
+| 2.0 | 20% |
+| 3.0 | 50% |
+| 4.0 | 80% |
+
+At GPA 3.0, the probability is 50%. The odds are therefore:
+
+$$
+\frac{0.5}{1-0.5}=1
+$$
+
+The log odds are:
+
+$$
+\log(1)=0
+$$
+
+That is why we center GPA at 3.0. Writing `GPA - 3` guarantees that the
+linear predictor equals 0 when GPA is 3.0.
+
+Now consider GPA 4.0. The probability is 80%, so the odds are:
+
+$$
+\frac{0.8}{1-0.8}=4
+$$
+
+The log odds are:
+
+$$
+\log(4)=1.386
+$$
+
+Moving from GPA 3.0 to GPA 4.0 is an increase of one GPA point. Therefore, the
+slope is 1.386, and the model is:
+
+$$
+\log\left(\frac{p}{1-p}\right)
+=1.386(GPA-3)
+$$
+
+The number 1.386 is not arbitrary. It is the natural logarithm of the odds at
+GPA 4.0:
+
+$$
+1.386=\log(4)
+$$
+
+Check the three target GPAs:
+
+| GPA | Log odds | Odds | Probability |
+|---:|---:|---:|---:|
+| 2.0 | -1.386 | 0.25 | 20% |
+| 3.0 | 0 | 1 | 50% |
+| 4.0 | 1.386 | 4 | 80% |
+
+For example, at GPA 2.0:
+
+$$
+1.386(2-3)=-1.386
+$$
+
+The odds are `exp(-1.386) = 0.25`, which gives a probability of:
+
+$$
+\frac{0.25}{1+0.25}=0.20
+$$
+
+At GPA 4.0, the odds are four times the odds at GPA 3.0. In general, a
+one-point increase in GPA multiplies the odds of admission by:
+
+$$
+e^{1.386}=4
+$$
+
+Expanding the centered model gives the equivalent form:
+
+$$
+1.386(GPA-3)=-4.158+1.386(GPA)
+$$
+
+The centered form is easier to interpret because GPA 3.0 is the reference
+point where the admission probability is 50%.
+
+# 4. How logistic regression differs from linear regression
+
+| Feature | Linear regression | Logistic regression |
+|---|---|---|
+| Target | Numerical | Binary, usually 0 or 1 |
+| Model predicts | A numerical mean | A probability |
+| Possible predictions | Any real number | Between 0 and 1 |
+
+Do not use ordinary linear regression for a binary target just because the values are coded as 0 and 1. A linear model can produce predictions below 0 or above 1 and does not correctly model the Bernoulli outcome structure.
+
+For a simple example, suppose a linear model predicts a survival probability
+of 0.20 for a passenger with age 20 and increases the prediction by 0.03 for
+each additional year of age. At age 70, the prediction would be
+
+$$
+0.20 + 0.03(70 - 20) = 1.70.
+$$
+
+A value of 1.70 cannot be a probability. At sufficiently low ages, the same
+line could also produce a negative prediction. The problem is not fixed by
+clipping values to 0 and 1: ordinary linear regression still uses a least-
+squares model for a continuous response rather than a Bernoulli likelihood for
+0/1 outcomes. Logistic regression models the log odds and transforms them so
+that every fitted probability stays in the valid interval.
+
+# 5. Assumptions of logistic regression
+
+The important assumptions are different from the assumptions of ordinary linear regression.
+
+## Binary outcome
+
+The response must represent two possible outcomes. The coding should be clear: 0 for failure or absence and 1 for success or presence.
+
+## Independent observations
+
+Rows should represent independent observational units. Repeated measurements on the same person, grouped students, or multiple transactions from the same account may require a different method.
+
+## Limited multicollinearity/collinearity
+
+Predictors should not contain excessive overlapping information. Collinearity can make coefficients unstable and difficult to interpret.
+
+## Adequate sample size and outcome counts
+
+The model needs enough observations in both outcome groups. A rare outcome and too many predictors can produce unstable estimates.
+
+There is no single cutoff that defines a rare outcome, but these are useful
+screening rules of thumb:
+
+- An outcome occurring in fewer than about 10% of observations deserves
+  special attention; fewer than 5% is often very rare for a basic model.
+- Count the number of events, not only the total sample size. A common
+  starting rule is roughly 10 outcome-1 events per estimated parameter, and
+  some applications use 20 or more when separation or nonlinear terms are a
+  concern. This is a rough warning rule, not a guarantee.
+- The same issue applies to the outcome-0 group. Both groups need enough
+  observations to estimate their patterns.
+
+For example, with 500 observations and only 25 survivors, survival is 5%.
+Even though 500 sounds like a large sample, there may be too little
+information for a model with many predictors and dummy-variable levels. Count
+the parameters after categorical variables are expanded into dummy variables.
+
+::: {.callout-note}
+***Side note: ***
+If small p, you can oversample the minority class or undersample the 
+majority class in the training data. This can help a classifier learn the 
+minority class, but it changes the class balance seen during training. As a 
+result, the raw predicted probabilities may no longer represent the real 
+population probabilities.
+
+If you rebalance the training data:
+
+- do it inside the training data only;
+- keep the test data at its natural class prevalence;
+- consider class weights instead of throwing away many majority observations;
+  and
+- calibrate or correct the probabilities before interpreting them as
+  population risks.
+:::
+
+
+# 6. Get the data
+
+The Titanic dataset contains passenger information and whether each passenger survived. It is available through the `titanic` R package.
+
+```{r}
+# Run this once if the package is not installed:
+# install.packages("titanic")
+
+library(tidyverse, warn.conflicts = FALSE)
+library(broom)
+library(knitr)
+library(titanic)
+
+data(titanic_train)
+
+titanic_raw <- titanic_train
+```
+
+The note that may appear after `library(tidyverse)` is usually not an error.
+`dplyr::filter()` and `dplyr::lag()` have the same names as functions in the
+base `stats` package, so loading the tidyverse makes the dplyr versions the
+ones found first. That behavior is intentional for the dplyr code in this
+lesson. The `warn.conflicts = FALSE` argument hides the startup note without
+changing which functions are used. When both versions are needed in the same
+script, write the namespace explicitly, such as `dplyr::filter()` or
+`stats::filter()`. The `conflicted` package is optional; it is not necessary
+for this lesson.  
+
+Inspect the data:
+
+```{r}
+dim(titanic_raw)
+glimpse(titanic_raw)
+summary(titanic_raw)
+```
+
+The target is `Survived`. The main predictors include passenger class, sex, age, fare, number of siblings or spouses aboard, and number of parents or children aboard.
+
+# 7. Check for errors and missing values
+
+First check the outcome values:
+
+```{r}
+titanic_raw |>
+  count(Survived)
+```
+
+The outcome should contain only 0 and 1. Check the range of numerical variables:
+
+```{r}
+titanic_raw |>
+  summarize(
+    min_age = min(Age, na.rm = TRUE),
+    max_age = max(Age, na.rm = TRUE),
+    min_fare = min(Fare, na.rm = TRUE),
+    max_fare = max(Fare, na.rm = TRUE),
+    min_sibsp = min(SibSp, na.rm = TRUE),
+    min_parch = min(Parch, na.rm = TRUE)
+  )
+```
+
+Check missing values:
+
+```{r}
+titanic_raw |>
+  summarize(
+    across(everything(), ~ sum(is.na(.x)))
+  )
+```
+
+***Missing `Age` values are a problem for a model that uses age. ***
+
+# 8. Create new variables
+
+Useful variables can summarize information or make patterns easier to model.
+
+```{r}
+titanic_clean <- titanic_raw |>
+  mutate(
+    family_size = SibSp + Parch + 1,
+    is_alone = if_else(family_size == 1, "Alone", "With family"),
+    age_missing = if_else(is.na(Age), "Age missing", "Age recorded"),
+    title = str_extract(Name, "(?<=, )[^.]+"),
+    Embarked = replace_na(Embarked, "Unknown")
+  ) |>
+  mutate(
+    title = case_when(
+      title %in% c("Mlle", "Ms") ~ "Miss",
+      title == "Mme" ~ "Mrs",
+      title %in% c(
+        "Dr", "Rev", "Col", "Major", "Capt", "Sir", "Jonkheer",
+        "Don", "Lady", "Countess"
+      ) ~ "Rare",
+      TRUE ~ title
+    ),
+    title = fct_lump_min(as.factor(title), min = 10, other_level = "Rare")
+  ) |>
+  filter(
+    Survived %in% c(0, 1),
+    Pclass %in% c(1, 2, 3),
+    Fare >= 0,
+    SibSp >= 0,
+    Parch >= 0
+  )
+```
+
+The new variables are:
+
+- `family_size`: the passenger plus relatives traveling with the passenger;
+- `is_alone`: whether the passenger traveled alone;
+- `age_missing`: an indicator that age was not recorded; and
+- `title`: a simplified title extracted from the passenger's name.
+
+The `age_missing` variable lets us preserve observations with missing age while still giving the model information about whether age was recorded. 
+
+# 9. Explore the outcome and predictors
+
+```{r}
+ggplot(titanic_clean, aes(x = factor(Survived))) +
+  geom_bar(fill = "steelblue") +
+  labs(
+    title = "Titanic Survival Counts",
+    x = "Survived",
+    y = "Number of passengers"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(titanic_clean, aes(x = Sex, fill = factor(Survived))) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Survival Proportion by Sex",
+    x = "Sex",
+    y = "Proportion",
+    fill = "Survived"
+  ) +
+  theme_minimal()
+```
+
+The second graph shows conditional proportions. It is often more informative for classification than a graph showing only raw counts.
+
+## Simple counts and averages
+
+Counts and rates provide a simple way to see how survival changes across
+important variables before fitting a model. For example, compare passenger
+class groups:
+
+```{r}
+titanic_raw |>
+  group_by(Pclass) |>
+  summarize(
+    total = n(),
+    Survived = sum(Survived),
+    died = total - Survived,
+    survival_rate = mean(Survived),
+    .groups = "drop"
+  )
+```
+
+Repeat the same calculation for other categorical variables. This makes the
+group sizes visible along with the survival rate:
+
+```{r}
+titanic_raw |>
+  group_by(Sex) |>
+  summarize(
+    total = n(),
+    Survived = sum(Survived),
+    died = total - Survived,
+    survival_rate = mean(Survived),
+    .groups = "drop"
+  )
+
+titanic_raw |>
+  group_by(Embarked) |>
+  summarize(
+    total = n(),
+    Survived = sum(Survived),
+    died = total - Survived,
+    survival_rate = mean(Survived),
+    .groups = "drop"
+  )
+```
+
+Now compare numerical averages for passengers who survived and passengers who
+did not. `Age` has missing values, so use `na.rm = TRUE` and report the number
+of nonmissing ages as context:
+
+```{r}
+titanic_raw |>
+  group_by(Survived) |>
+  summarize(
+    passengers = n(),
+    ages_recorded = sum(!is.na(Age)),
+    average_age = mean(Age, na.rm = TRUE),
+    median_age = median(Age, na.rm = TRUE),
+    average_fare = mean(Fare, na.rm = TRUE),
+    median_fare = median(Fare, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+These summaries are descriptive rather than causal. They help us understand
+the data and motivate the predictors, but they do not adjust for the other
+variables in the way a regression model does.
+
+# 10. Decide what to do with missing ages
+
+Before replacing missing ages, investigate whether passengers with missing
+ages look different from passengers whose ages were recorded. This is
+important because missingness may identify a subgroup. The following check is
+exploratory; the final imputation value will be calculated from the training
+data after the split.
+
+```{r}
+titanic_clean |>
+  group_by(age_missing) |>
+  summarize(
+    passengers = n(),
+    survival_rate = mean(Survived),
+    average_fare = mean(Fare, na.rm = TRUE),
+    average_sibsp = mean(SibSp, na.rm = TRUE),
+    percent_alone = mean(is_alone == "Alone") * 100,
+    .groups = "drop"
+  )
+```
+
+These summaries do not prove that ages are missing at random. If the groups
+look different, preserve that information with an indicator such as
+`Age_missing`, use subgroup-specific imputation, or use a more sophisticated
+method. We will retain a missing-age indicator and use a simple training-set
+median as a baseline.
+
+# 11. Split the data into training and testing groups
+
+The training data are used to estimate coefficients and preprocessing values.
+The test data are held back until the end. The test data should not be used to
+calculate the age-imputation value, choose variables, select a probability
+cutoff, or estimate model coefficients. Using test data during model
+development is data leakage.
+
+```{r}
+set.seed(167)
+
+test_rows <- sample(
+  seq_len(nrow(titanic_clean)),
+  size = 0.20 * nrow(titanic_clean)
+)
+
+test_data <- titanic_clean[test_rows, ]
+train_data <- titanic_clean[-test_rows, ]
+
+train_data <- train_data |>
+  mutate(Age_missing = is.na(Age))
+
+test_data <- test_data |>
+  mutate(Age_missing = is.na(Age))
+
+training_median_age <- median(train_data$Age, na.rm = TRUE)
+
+train_data <- train_data |>
+  mutate(Age = replace_na(Age, training_median_age))
+
+test_data <- test_data |>
+  mutate(Age = replace_na(Age, training_median_age))
+```
+
+The same training median is applied to both datasets. We do not calculate a
+separate median from the test data because preprocessing decisions must be
+learned from the training data only. The `Age_missing` indicator is retained
+so the model can learn whether the fact that age was missing carries useful
+information.
+
+If you want to repeat the missingness comparisons using outcomes, do so with
+`train_data` only after the split. That keeps the test set reserved for the
+final evaluation.
+
+## Dummy variables for categorical predictors
+
+Regression models need numerical columns, so categorical variables such as
+`Sex`, `Embarked`, and `title` are represented with dummy variables. If a
+categorical variable has `n` levels, the usual treatment is to create `n - 1`
+dummy variables and keep one level as the reference category. The omitted level
+is represented by all zeros.
+
+For example, if `Sex` has the levels `female` and `male`, R creates one dummy
+variable such as `Sexmale`. A female passenger has `Sexmale = 0`; a male
+passenger has `Sexmale = 1`. The intercept describes the reference group
+(female), and the `Sexmale` coefficient describes the difference between male
+and female passengers, holding the other predictors constant. Creating all
+`n` dummies along with an intercept would make the columns perfectly redundant
+because they always add to 1. Omitting one dummy avoids this perfect
+multicollinearity.
+
+R's `glm()` function performs this encoding automatically when a variable is a
+factor. You can inspect the resulting design matrix with:
+
+```{r}
+model.matrix(~ Pclass + Sex + Embarked + title, data = train_data) |>
+  head()
+```
+
+# 12. Fit a logistic regression model
+
+Use `glm()` with `family = binomial`:
+
+```{r}
+logistic_model <- glm(
+  Survived ~ Pclass + Sex + Age + Age_missing + Fare + family_size +
+    is_alone + Embarked + title,
+  data = train_data,
+  family = binomial
+)
+
+summary(logistic_model)
+```
+
+The coefficients are in log-odds units. Log odds are mathematically useful,
+but they are not usually the easiest scale for communicating results. Create
+an easier-to-read odds-ratio table by exponentiating each coefficient:
+
+```{r}
+tidy(logistic_model, conf.int = FALSE) |>
+  mutate(
+    odds_ratio = exp(estimate),
+    conf.low = exp(estimate - 1.96 * std.error),
+    conf.high = exp(estimate + 1.96 * std.error)
+  ) |>
+  select(term, estimate, odds_ratio, conf.low, conf.high, p.value) |>
+  kable(digits = 3)
+```
+
+We use Wald confidence intervals here rather than profile-likelihood confidence intervals. The `conf.int = TRUE` option can repeatedly refit a logistic model, which can produce many separation warnings when some groups are nearly perfectly separated.
+
+For a categorical variable, the coefficient compares a category with the reference category. For example, the coefficient for `Sexmale` compares males with the reference category, females, while holding the other variables constant.
+
+The reason for exponentiating is that a difference on the log-odds scale becomes
+a multiplicative comparison on the odds scale. An odds ratio of 2 means that
+the odds are twice as large, while an odds ratio of 0.50 means that the odds
+are half as large, holding the other predictors constant. These are changes in
+odds, not automatic changes in probability. For example, if a baseline
+probability is 0.20, the baseline odds are `0.20 / 0.80 = 0.25`. An odds ratio
+of 2 changes the odds to 0.50, which corresponds to a probability of
+`0.50 / (1 + 0.50) = 0.333`, not 0.40.
+
+The p-value in this table tests the null hypothesis that the coefficient is
+zero, which is equivalent to an odds ratio of 1. A large p-value means that,
+after accounting for the other predictors and sampling variation, the data do
+not provide strong evidence that this particular coefficient differs from zero.
+For a simple teaching model, variables with large p-values and no clear
+subject-matter role are candidates for removal. However, a large p-value does
+not prove that a variable has no effect. A variable may be important as a
+confounder, a control variable, or a theoretically necessary predictor. The
+decision should also consider practical meaning, collinearity, model
+stability, and held-out predictive performance.
+
+# 13. Check the fitted model
+
+Check for warning signs such as very large coefficients or very large standard errors:
+
+```{r}
+tidy(logistic_model) |>
+  arrange(desc(abs(estimate))) |>
+  kable(digits = 3)
+```
+
+Check for highly correlated numerical predictors:
+
+```{r}
+train_data |>
+  select(Pclass, Age, Fare, family_size, SibSp, Parch) |>
+  cor()
+```
+
+## Create a parsimonious final model
+
+The initial model contains several variables, but a larger model is not
+automatically better. A **parsimonious** model explains the important pattern
+with as few predictors and parameters as reasonably possible. Parsimony does
+not mean choosing the shortest model at any cost; it means balancing useful
+information, interpretability, stability, and predictive performance. We want a
+model that has:
+
+- important predictors with a reasonable statistical and practical explanation;
+- limited redundancy among predictors;
+- stable coefficient estimates; and
+- adequate predictive performance on the test data.
+
+The full model includes both `Pclass` and `Fare`, which measure related aspects of a passenger's economic position. It also includes several overlapping family and title variables. For a simpler teaching model, we retain the strongest and most interpretable predictors: passenger class, sex, and age.
+
+```{r}
+final_model <- glm(
+  Survived ~ Pclass + Sex + Age,
+  data = train_data,
+  family = binomial
+)
+
+summary(final_model)
+```
+
+Create the odds-ratio table for the final model:
+
+```{r}
+tidy(final_model, conf.int = FALSE) |>
+  mutate(
+    odds_ratio = exp(estimate),
+    conf.low = exp(estimate - 1.96 * std.error),
+    conf.high = exp(estimate + 1.96 * std.error)
+  ) |>
+  select(term, estimate, odds_ratio, conf.low, conf.high, p.value) |>
+  kable(digits = 3)
+```
+
+The final model is not claimed to be the only correct model. It is a defensible parsimonious model: it uses a small number of meaningful predictors and avoids some of the redundancy in the larger model. Variable selection should not be based only on whether a p-value is below 0.05. Subject-matter knowledge, collinearity, model stability, and test-set performance also matter.
+
+# 14. Stepwise logistic regression
+
+Instead of choosing variables manually, we can ask R to add or remove variables
+according to a selection rule. The `step()` function uses the Akaike
+Information Criterion (AIC) by default. AIC is calculated as
+
+$$
+\mathrm{AIC} = -2\log(\text{likelihood}) + 2k,
+$$
+
+where the likelihood measures how well the model explains the observed data
+and `k` is the number of estimated parameters. The first term rewards fit; the
+second term penalizes complexity. Lower AIC is preferred when comparing models
+fit to the same outcome and the same observations.
+
+For example, suppose model A has log-likelihood `-300` and 4 parameters. Its
+AIC is `-2(-300) + 2(4) = 608`. Model B has a better log-likelihood of `-296`
+but 8 parameters, so its AIC is `592 + 16 = 608`; the extra complexity has
+used up the improvement in fit. Model C has log-likelihood `-295` and 5
+parameters, giving an AIC of `590 + 10 = 600`, so it would be preferred among
+these three candidates.
+
+Stepwise regression uses AIC because it gives a repeatable rule for deciding
+whether adding or removing a term improves the fit enough to justify the
+additional complexity. It is a model-search tool, not proof that the selected
+model is the true model. Because the search can overfit the training data,
+keep the test data separate and evaluate the final choice there.
+
+Stepwise selection should be performed using the training data only. The test data must remain separate until the final evaluation.
+
+## Forward selection
+
+Forward selection begins with an intercept-only model and adds variables one at a time.
+
+```{r}
+null_model <- glm(
+  Survived ~ 1,
+  data = train_data,
+  family = binomial
+)
+
+full_model <- glm(
+  Survived ~ Pclass + Sex + Age + Fare + family_size +
+    is_alone + Embarked + title,
+  data = train_data,
+  family = binomial
+)
+
+forward_model <- step(
+  null_model,
+  scope = list(
+    lower = formula(null_model),
+    upper = formula(full_model)
+  ),
+  direction = "forward",
+  trace = 1
+)
+
+summary(forward_model)
+```
+
+## Backward selection
+
+Backward selection begins with the full model and removes variables one at a time.
+
+```{r}
+backward_model <- step(
+  full_model,
+  direction = "backward",
+  trace = 1
+)
+
+summary(backward_model)
+```
+
+Stepwise selection is useful for exploring the data, but it is not automatically the truth. The selected model can change with small changes in the data, and p-values after selection should be interpreted cautiously. Use test-set performance and subject-matter reasoning when deciding whether to keep the selected model.
+
+For a more formal check of the linearity in the log odds, compare the model with a flexible version of a numerical predictor. For example, age could be modeled with a spline or age groups. A curved relationship suggests that a simple linear age term may be inadequate.
+
+```{r}
+ggplot(train_data, aes(x = Age, y = Survived)) +
+  geom_jitter(height = 0.05, alpha = 0.2) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial"),
+              se = FALSE, color = "red") +
+  labs(
+    title = "Survival and Age",
+    x = "Age",
+    y = "Survived"
+  ) +
+  theme_minimal()
+```
+
+This graph is descriptive. It does not replace checking the model on held-out data.
+
+# 16. Predict probabilities for the test data
+
+The `final_model` is the simple parsimonious model chosen in Section 13. It
+uses `Pclass`, `Sex`, and `Age`, was fit using `train_data`, and was not fit
+using the held-out test rows. We now use it to generate predictions for rows
+the model did not see during fitting. `type = "response"` returns
+probabilities rather than log-odds.
+
+```{r}
+test_predictions <- test_data |>
+  mutate(
+    probability_survived = predict(
+      final_model,
+      newdata = test_data,
+      type = "response"
+    ),
+    predicted_class = if_else(
+      probability_survived >= 0.50,
+      1,
+      0
+    )
+  ) |>
+  select(
+    PassengerId,
+    Survived,
+    Pclass,
+    Sex,
+    Age,
+    probability_survived,
+    predicted_class
+  )
+
+head(test_predictions , n = 10)
+```
+
+Each printed row lets us compare the actual `Survived` value with the
+probability assigned by the model and the resulting `predicted_class`. The
+class is 1 when the probability is at least 0.50 and 0 otherwise. Looking at
+several rows is a useful manual check: it shows which input variables went
+into the prediction and whether the predicted class agrees with the known
+test outcome.
+
+The cutoff of 0.50 is a starting point, not a universal rule. A different cutoff may be appropriate when the costs of false positives and false negatives are different.
+
+# 17. Score the test predictions
+
+A confusion matrix compares the actual class with the predicted class. It is
+called a “confusion” matrix because it shows the four ways a binary
+classification can be correct or incorrect:
+
+|  | Predicted positive | Predicted negative |
+|---|---:|---:|
+| Actual positive | True positive (TP) | False negative (FN) |
+| Actual negative | False positive (FP) | True negative (TN) |
+
+Use a disease-screening example. A **true positive** is a person who has the
+disease and tests positive. A **true negative** does not have the disease and
+tests negative. A **false positive** does not have the disease but tests
+positive; this is a Type I error. A **false negative** has the disease but
+tests negative; this is a Type II error. In the Titanic example, “positive”
+means `Survived = 1`, so a false positive is a nonsurvivor predicted to
+survive, while a false negative is a survivor predicted not to survive.
+
+Create the confusion matrix:
+
+```{r}
+confusion_matrix <- table(
+  Actual = test_predictions$Survived,
+  Predicted = test_predictions$predicted_class
+)
+
+confusion_matrix
+```
+
+Calculate common classification measures:
+
+```{r}
+true_positive <- sum(
+  test_predictions$Survived == 1 &
+    test_predictions$predicted_class == 1
+)
+
+true_negative <- sum(
+  test_predictions$Survived == 0 &
+    test_predictions$predicted_class == 0
+)
+
+false_positive <- sum(
+  test_predictions$Survived == 0 &
+    test_predictions$predicted_class == 1
+)
+
+false_negative <- sum(
+  test_predictions$Survived == 1 &
+    test_predictions$predicted_class == 0
+)
+
+accuracy <- (true_positive + true_negative) / nrow(test_predictions)
+sensitivity <- true_positive / (true_positive + false_negative)
+specificity <- true_negative / (true_negative + false_positive)
+precision <- true_positive / (true_positive + false_positive)
+
+tibble(
+  accuracy = accuracy,
+  sensitivity = sensitivity,
+  specificity = specificity,
+  precision = precision
+)
+```
+
+Definitions:
+
+- **Accuracy:** proportion of all classifications that are correct.
+- **Sensitivity, recall, or true-positive rate:** proportion of actual
+  survivors correctly identified, `TP / (TP + FN)`.
+- **Specificity or true-negative rate:** proportion of actual nonsurvivors
+  correctly identified, `TN / (TN + FP)`.
+- **Precision or positive predictive value:** proportion of predicted survivors
+  who actually survived, `TP / (TP + FP)`.
+- **False-positive rate:** proportion of actual nonsurvivors incorrectly
+  predicted to survive, `FP / (FP + TN)`, which equals `1 - specificity`.
+- **False-negative rate:** proportion of actual survivors missed by the model,
+  `FN / (FN + TP)`, which equals `1 - sensitivity`.
+
+In a disease-screening setting, a false negative may be more dangerous than a
+false positive, so high sensitivity may be prioritized. In other settings,
+follow-up tests may be expensive, so a low false-positive rate may matter more.
+Accuracy alone can be misleading when one outcome is much more common than the
+other. Always inspect the outcome distribution and consider the practical cost
+of each type of mistake.
+
+## Log loss and the Brier score
+
+Probability predictions should be evaluated as probabilities, not only as classes. The Brier score is the mean squared difference between the predicted probability and the actual outcome:
+
+```{r}
+brier_score <- mean(
+  (test_predictions$Survived -
+     test_predictions$probability_survived)^2
+)
+
+brier_score
+```
+
+Lower Brier scores are better. A model that assigns a probability of 0.51 and a model that assigns a probability of 0.99 may produce the same class, but the second prediction is much more confident and should be penalized more when it is wrong.
+
+# 18. ROC curve and AUC
+
+The model produces a probability for each passenger, but a classification rule
+needs a cutoff. For example, a cutoff of 0.50 predicts survival whenever
+`probability_survived >= 0.50`. The ROC curve evaluates every possible cutoff
+at once. It plots the true-positive rate (sensitivity) against the false-
+positive rate (`1 - specificity`). Each point on the curve represents a
+different cutoff.
+
+The upper-left corner is ideal: sensitivity is 1 and the false-positive rate
+is 0. The dashed diagonal is approximately random ranking. A useful model
+usually bows above that diagonal. The ROC curve is useful during model
+building because it evaluates discrimination without committing to one cutoff
+and helps show the tradeoff between finding more positives and creating more
+false alarms.
+
+```{r}
+roc_data <- map_dfr(
+  seq(0, 1, by = 0.01),
+  function(cutoff) {
+    predicted <- if_else(
+      test_predictions$probability_survived >= cutoff,
+      1,
+      0
+    )
+
+    tp <- sum(test_predictions$Survived == 1 & predicted == 1)
+    tn <- sum(test_predictions$Survived == 0 & predicted == 0)
+    fp <- sum(test_predictions$Survived == 0 & predicted == 1)
+    fn <- sum(test_predictions$Survived == 1 & predicted == 0)
+
+    tibble(
+      cutoff = cutoff,
+      sensitivity = tp / (tp + fn),
+      specificity = tn / (tn + fp),
+      false_positive_rate = 1 - specificity
+    )
+  }
+)
+
+ggplot(roc_data, aes(x = false_positive_rate, y = sensitivity)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  geom_abline(linetype = "dashed", color = "gray50") +
+  coord_equal() +
+  labs(
+    title = "ROC Curve",
+    x = "False-positive rate",
+    y = "True-positive rate"
+  ) +
+  theme_minimal()
+```
+
+The dashed diagonal represents a classifier with no useful discrimination. A curve that rises toward the upper-left performs better.
+
+There is not one universally optimal cutoff. Choose it using the consequences
+of the two error types and the setting in which the model will be used. If the
+costs of false positives and false negatives are similar, a common exploratory
+choice is the cutoff that maximizes Youden's index,
+`sensitivity + specificity - 1`. If missing a positive is costly, choose a
+lower cutoff to increase sensitivity. If false positives are costly, choose a
+higher cutoff. A fixed capacity, such as being able to investigate only the
+top 20% of cases, can also determine the cutoff.
+
+For an honest final evaluation, select a cutoff using the training data or a
+validation set and then report performance once on the untouched test data.
+The following identifies a Youden-index cutoff for illustration; do not use
+the test set to repeatedly tune a deployed model:
+
+```{r}
+best_cutoff <- roc_data |>
+  mutate(youden_index = sensitivity + specificity - 1) |>
+  slice_max(youden_index, n = 1, with_ties = FALSE)
+
+best_cutoff
+```
+
+The area under the ROC curve, or AUC, can be approximated with the trapezoidal rule:
+
+```{r}
+roc_ordered <- roc_data |>
+  arrange(false_positive_rate)
+
+auc <- sum(
+  diff(roc_ordered$false_positive_rate) *
+    (head(roc_ordered$sensitivity, -1) +
+       tail(roc_ordered$sensitivity, -1)) / 2
+)
+
+auc
+```
+
+An AUC of 0.5 is approximately random ranking. An AUC of 1 represents perfect ranking. AUC measures discrimination, not whether the predicted probabilities are well calibrated.
+
+# 19. Cumulative gains chart
+
+A gains chart answers a practical question:
+
+> If we investigate the observations with the highest predicted probabilities first, how many of the actual positive cases will we find?
+
+Sort the test passengers from highest to lowest predicted probability. Then calculate the percentage of all survivors captured as more passengers are considered.
+
+```{r}
+gains_data <- test_predictions |>
+  arrange(desc(probability_survived)) |>
+  mutate(
+    rank = row_number(),
+    population_percent = rank / n() * 100,
+    cumulative_survivors = cumsum(Survived),
+    gains_percent = cumulative_survivors / sum(Survived) * 100,
+    random_gains_percent = population_percent
+  )
+```
+
+Plot the gains curve:
+
+```{r}
+ggplot(gains_data, aes(x = population_percent, y = gains_percent)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_line(
+    aes(y = random_gains_percent),
+    color = "gray50",
+    linetype = "dashed"
+  ) +
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +
+  labs(
+    title = "Cumulative Gains Chart",
+    subtitle = "How many survivors are captured by investigating high-probability cases first",
+    x = "Percentage of passengers considered",
+    y = "Percentage of survivors captured"
+  ) +
+  theme_minimal()
+```
+
+The dashed line represents random selection. At 100% of the passengers, the gains curve reaches 100% of the survivors because every passenger has been considered.
+
+If the model is useful, the blue curve should rise above the random line early. For example, if the curve reaches 70% on the y-axis when the x-axis is 40%, then the highest-probability 40% of passengers contain 70% of the survivors.
+
+Here is a customer-communication example. Suppose there are 100 customers,
+50 of whom will buy, and each message costs $1. If we contact everyone, the
+campaign costs $100. Because only 50 customers buy, messages sent to the other
+50 customers are wasted, so $50 is spent on nonbuyers.
+
+Now suppose the model ranks the customers and the best 50 customers contain 45
+of the 50 buyers. That captures 90% of the buyers while costing $50. Only 5 of
+the 50 messages go to nonbuyers, so the wasted communication cost is $5. This
+is the kind of improvement a gains chart is designed to show.
+
+Because there are only 50 buyers in this example, “90 will buy” cannot mean 90
+customers; it must mean 90% of the buyers, or 45 customers. If you want an
+example with $10 wasted, the top 50 would contain 40 buyers and 10 nonbuyers,
+capturing 80% of the buyers.
+
+The gains chart is especially useful when an organization can investigate only
+a limited number of cases. It evaluates the ranking produced by the model
+rather than relying on one arbitrary probability cutoff.
+
+# 20. Model limitations
+
+The Titanic data are historical and incomplete. Passenger information is not a randomized experiment, and important variables may be missing. Therefore, this model should be used to learn the workflow, not to make modern safety decisions.
+
+Possible limitations include:
+
+- passengers are not independent in every meaningful sense;
+- the data may not represent other ships, time periods, or populations;
+- the model may omit crew information, location on the ship, access to lifeboats, and other important variables;
+- the 0.50 cutoff is arbitrary; and
+- predictive accuracy does not establish causation.
+
+# Questions for students
+
+1. Why is survival an appropriate target for logistic regression?
+2. Why should ordinary linear regression not be used for `Survived`?
+3. What does `type = "response"` return from `predict()`?
+4. What does an odds ratio greater than 1 mean?
+5. Why is the training median used to fill missing ages in both datasets?
+6. Why might accuracy alone be a poor measure of model performance?
+7. What does the ROC curve show as the probability cutoff changes?
+8. What does the cumulative gains chart show at 40% of the population?
+9. Why does the gains curve reach 100% at the right side of the graph?
+10. Which mistake would be more serious in a medical screening problem: a false positive or a false negative? How might that affect the probability cutoff?
