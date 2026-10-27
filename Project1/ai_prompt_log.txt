@@ -1,0 +1,122 @@
+AI assistance record for CLT Project 1
+
+Prompt 1 (user):
+"As a data scientist, take a look at the clt_project_1_student_guidance-1.pmd file and summarize it for me. Also provide me some ideas on how to proceed."
+
+Follow-up prompt (user):
+"Can you help complete the project in the project1.R file?"
+
+Clarification from assistant:
+Asked for a four-digit simulation seed because the guidance requests the last
+four digits of the student ID where required. The script initially uses 1671
+as an editable default; this is not a claim about the student's ID.
+
+Assistance provided:
+Read the actual .qmd guidance and the existing project1.R file. Implemented
+base-R simulations for the five required populations, reusable functions,
+theory comparisons, PNG histograms and Q-Q plots, CSV tables, a text executive
+summary, and a Quarto report. Extra-credit processes were not included.
+
+Checks and corrections:
+Replaced the original Python-style sample-size brackets with R's c(...).
+Separated observations per sample (n) from Monte Carlo repetitions (B).
+Used sqrt(35/12) for die SD and sqrt(0.45) for the small-binomial SD.
+Used exact shape formulas for sample means to compare simulations with theory.
+Distinguished excess kurtosis (normal target zero) from kurtosis (target three).
+Marked Cauchy theoretical moments and moment-based diagnostics as undefined.
+Used all Cauchy observations in summaries and labeled cropped plot displays.
+Reported numerical threshold crossings as provisional tested-grid results.
+
+Execution and visual validation (2026-10-09):
+Rscript project1.R ran successfully with R 4.6.1 from both the repository root
+and the Project1 directory. All three CSV outputs had identical SHA-256 hashes
+on rerun with the same settings.
+Checked that the summary contains 50 distinct scenarios with 10,000 samples
+each. Every finite-population empirical SE was within 5% of theory, and every
+simulated mean was within five Monte Carlo SEs of its theoretical value;
+the largest observed error with the initial default seed was 2.228 MC SEs. Normal skewness and excess kurtosis
+were close to zero. Cauchy theoretical moments were NA; simulated medians were
+within 0.1 of zero and IQRs ranged from 1.958 to 2.054 around the exact value 2.
+Visually inspected the population plots, sampling plots, convergence diagnostics,
+and Cauchy stability plot. Corrected overlapping Cauchy plot labels and included
+the first passing size and the preceding tested size in sampling figures.
+Quarto 1.10.18 rendered project1_report.qmd successfully to embedded-resource HTML.
+The first render was blocked by sandbox directory access in Quarto's bundler;
+the permitted rerun completed. R's local startup emitted locale warnings, but
+the simulation and final rendering completed without analysis errors.
+
+Initial default-seed numeric screening results (1671; superseded):
+Normal: first tested passing n = 1; die: 5; exponential: 200; small binomial: 50.
+Cauchy screening is inapplicable. These depend on the stated thresholds and seed;
+they are not universal CLT cutoffs.
+
+Seed clarification (user):
+"5100 is the digits"
+Updated student_seed to 5100 and removed the default-seed reminder from the report.
+Reran all 50 scenarios and regenerated the plots, tables, executive summary,
+and HTML report. Confirmed that the saved analysis settings record Seed: 5100.
+With this seed, the first tested passing sizes are normal 1, die 5,
+exponential 100, and small binomial 100; Cauchy screening remains inapplicable.
+Changes from the initial run reflect Monte Carlo noise near the chosen cutoffs.
+
+Additional explanation conversations (recorded 2026-10-11):
+
+Follow-up prompt (user):
+"Explain to me what the functions used for the source_files in find_project_directory are"
+
+Explanation provided:
+Walked through unlist(lapply(sys.frames(), function(frame) frame$ofile)).
+Explained that sys.frames() returns environments for active function calls,
+lapply() applies the anonymous function to each environment, frame$ofile
+retrieves a source-file path where present, and unlist() combines the results
+into a vector while dropping NULL entries. Included an expanded equivalent
+version of the expression and explained how commandArgs() supplies a fallback
+when the script runs through Rscript.
+
+Follow-up prompt (user):
+"Why do we need the kurtosis in this project? What's its usage in here?"
+
+Explanation provided:
+Explained how kurtosis complements skewness by measuring standardized fourth
+moments and the tendency toward extreme values. Distinguished ordinary kurtosis
+from excess kurtosis, whose normal reference value is zero. Connected the
+excess-kurtosis cutoff of 0.50 to the numerical screen and explained the
+population excess kurtosis / n prediction for independent sample means with
+finite fourth moments. Used the symmetric die to show why zero skewness alone
+does not establish normality. Discussed simulation variability, the need for
+histograms and Q-Q plots, and undefined Cauchy kurtosis.
+
+Follow-up prompt (user):
+"Can you explain to me, in details, what the functions and logic for '# 3. Resuable simulation and numberical summeries' are?"
+
+Explanation provided:
+Read the current Section 3 of project1.R and explained its three functions
+and the loops that apply them to all populations and sample sizes.
+For simulate_sample_means(), distinguished n, repetitions, and batch_size;
+explained preallocation with numeric(), batch boundaries with seq.int() and
+min(), matrix construction, R's column-by-column filling, rowMeans(), indexed
+assignment, and the function's returned vector of means.
+For sample_shape(), explained centering, the second central moment, the
+zero-spread guard, moment-based skewness and excess kurtosis, and named vectors.
+For summarize_sample_means(), explained theoretical versus empirical SE,
+mean error, Monte Carlo SE, normal-window coverage, Boolean averaging,
+short-circuit && conditions, and the shape and SE screening criteria.
+Explained the remaining summary columns, quantiles, IQR, unname(), data.frame(),
+and the descriptive interpretation of finite Cauchy sample statistics.
+Walked through the population and sample-size loops, derived scenario seeds
+from the base seed 5100, explained list storage and stopifnot(), and showed how
+do.call(rbind, summary_rows) produces the final 50-row summary table.
+
+Follow-up prompt (user):
+"Can you update the ai_prompt_log.txt with the additional conversations?"
+
+Action taken:
+Added the follow-up prompts and summaries of the explanations to this file.
+The explanation conversations were educational walkthroughs; they introduced
+no additional code changes or statistical validation runs. Existing execution
+and validation evidence remains documented above.
+
+Student follow-up before submission:
+Inspect the plots and
+check that you can explain the CLT assumptions and each distribution's behavior.
+Record any additional prompts, manual corrections, or changes to the criteria.

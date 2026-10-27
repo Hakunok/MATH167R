@@ -1,0 +1,11 @@
+Seed: 5100
+Sample sizes: 1, 2, 5, 10, 20, 30, 50, 100, 200, 500
+Independent samples per scenario: 10000
+Batch size: 1000
+Shape screen: absolute skewness <= 0.2 and absolute excess kurtosis <= 0.5
+SE check: absolute empirical/theoretical SE ratio error <= 0.05
+Numeric screening is provisional: inspect histograms and Q-Q plots before drawing conclusions.
+Cauchy sample means and SDs are descriptive only; population mean and variance are undefined.
+Cauchy skewness, kurtosis, theoretical SE and normal coverage are intentionally NA.
+Cauchy plot limits crop the display only; all generated means remain in the summaries.
+RNG algorithms: Mersenne-Twister / Inversion / Rejection.

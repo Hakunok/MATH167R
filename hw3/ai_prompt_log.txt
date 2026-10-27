@@ -1,0 +1,75 @@
+AI assistance record for Homework 3: World Map and Personal Places
+Recorded: 2026-10-21
+
+The prompts below are copied from this homework conversation in order.
+Automatically supplied IDE context is omitted.
+
+Prompt 1 (user):
+As a data scientist, take a look at the "HW3 - world_map_homework" pdf file, and prepare yourself for upcoming related questions about the file and the tasks within it
+
+Assistance provided:
+Read both pages of the assignment and reviewed the starter R script and ggplot
+lesson handout. Summarized the world map, three-location map, improvement,
+submission, and AI-prompt disclosure requirements. No R code was changed at
+this stage.
+
+Prompt 2 (user):
+The chosen variable will be Estimated GDP in millions, provide a map/plot with the variable, be sure to include a legend and apply color scale to the plot. The title of the plot will be "Estimated GDP per country (in millions)"
+
+Assistance provided:
+Checked the installed Natural Earth data and identified gdp_md as the GDP
+column. Added the requested title, subtitle, GDP legend, and a viridis color
+scale with a log10 transformation. Nonpositive GDP values were marked as
+unavailable and shown in gray. Added PNG export to hw3_gdp_map.png.
+The script was run successfully and the resulting map was visually inspected.
+
+Prompt 3 (user):
+I need the coordinates for the following cities to be filled in 'logitude' and 'latitude': Lapland in Finland, Uyuni in Bolivia, and Seljalandsfoss in Iceland
+
+Assistance provided:
+Looked up approximate coordinates and replaced the placeholder longitude and
+latitude values in important_places. Used Rovaniemi as a representative point
+for Lapland, which is a region. Used the city of Uyuni and the Seljalandsfoss
+waterfall. Verified conversion to sf points with longitude first, latitude
+second, and CRS 4326.
+
+Coordinates used (longitude, latitude):
+Lapland, represented by Rovaniemi: 25.7333, 66.5000
+Uyuni: -66.8239, -20.4628
+Seljalandsfoss: -19.9886, 63.6156
+
+Coordinate references consulted:
+https://en.wikipedia.org/wiki/Rovaniemi
+https://en.wikipedia.org/wiki/Uyuni
+https://seljalandsfoss.org/address/
+
+Prompt 4 (user):
+Can you add these three cities in the world map plot? Be sure to do the followings: label each city with a different color and different point shape, the names of the cities, a line or something more appropriate connecting the three.
+
+Assistance provided:
+Created gdp_places_map by adding location layers to the GDP map. Assigned a
+blue circle to Lapland, a green triangle to Uyuni, and a purple square to
+Seljalandsfoss. Added matching name labels and a location legend. Connected
+Lapland to Seljalandsfoss to Uyuni with a dashed line and explained that the
+line is a visual connection rather than an actual travel route. Kept the
+standalone GDP map and exported the second map to hw3_places_map.png.
+The script was run successfully and the resulting map was visually inspected.
+
+Prompt 5 (user):
+Can you add a log for the prompts I've given for this homework? Also, add this homework into the README.md file as well
+
+Assistance provided:
+Created this prompt log and added Homework 3 to the repository README, with
+links to the assignment, R script, two maps, and this log, plus instructions
+for running the script from the hw3 directory.
+
+Interpretation notes:
+GDP values are country totals in millions of US dollars, not GDP per capita.
+The logarithmic scale changes the color mapping; legend labels retain the
+original GDP units. Natural Earth GDP estimate years vary by country.
+Location coordinates are approximate. Lapland is a region, and Seljalandsfoss
+is a waterfall; the city column is used as a convenient location label.
+
+Scope of this record:
+This log covers the prompts visible in this conversation. Later manual code
+edits or prompts from other conversations should be recorded separately.

@@ -1,0 +1,16 @@
+CLT Project 1 - Executive Summary
+Simulated 10,000 independent samples at each of 10 sizes for five populations (seed 5100).
+Predictions were specified before simulation; results are compared with exact population moments.
+Numeric screening combines small skewness, small excess kurtosis and agreement with theoretical SE.
+Standard Normal: first tested n passing numeric screen = 1; n = 30 passes. Sample means are exactly normal at every n.
+Six-Sided Die: first tested n passing numeric screen = 5; n = 30 passes. Symmetric but discrete; the normal approximation improves with n.
+Exponential: first tested n passing numeric screen = 100; n = 30 does not pass. Right skew decreases slowly; mean skewness is 2/sqrt(n).
+Binomial Small: first tested n passing numeric screen = 100; n = 30 does not pass. Initially skewed and discrete; both effects decrease with n.
+Cauchy: first tested n passing numeric screen = none; n = 30 inapplicable (undefined variance). Sample means remain standard Cauchy; the ordinary CLT fails.
+There is no universal n = 30 rule. The needed size depends on population shape and the chosen accuracy criteria.
+For independent finite-variance populations, the sampling SD follows sigma/sqrt(n).
+Cauchy sample means remain Cauchy, with theoretical median 0 and IQR 2, at every n.
+First passing sizes are provisional tested-grid results: confirm with histograms and Q-Q plots.
+Monte Carlo error can change threshold crossings; the grid does not identify an exact minimum.
+Normal-window coverage is a separate diagnostic; one central probability cannot establish normality.
+Scope: the five required populations. Optional dependent, non-identical and mixture cases are not included.
