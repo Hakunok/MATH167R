@@ -1,0 +1,6 @@
+# Keep the original Yelp JSON downloads local.
+/Project2/Yelp-JSON/Yelp JSON/yelp_dataset/*.json
+**/data/raw/
+
+# Ignore macOS archive metadata.
+**/__MACOSX/
